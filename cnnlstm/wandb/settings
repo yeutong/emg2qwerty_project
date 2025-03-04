@@ -1,0 +1,5 @@
+[default]
+entity = yeutong
+project = emg2qwerty
+base_url = https://api.wandb.ai
+
