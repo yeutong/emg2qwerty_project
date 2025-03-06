@@ -13,6 +13,8 @@ import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
 import numpy as np
+import os
+from datetime import datetime  # Import datetime
 
 # Import from emg2qwerty
 from emg2qwerty.charset import charset
@@ -26,7 +28,6 @@ from config import load_config
 from data import create_dataloaders
 
 # Set visible GPU to GPU 3
-import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 assert torch.cuda.device_count() == 1, "Only one GPU should be visible"
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -251,16 +252,23 @@ wandb.init(
     name=f'cnnbilstm-window-{args.window_length}-{args.note}'
 )
 
+# Get the current date and time
+current_time = datetime.now().strftime("%Y%m%d_%H%M%S")  # Format: YYYYMMDD_HHMMSS
+
 # Train the model using your existing data loaders
 results = train_model(
     model=model,
     train_loader=train_loader,
     val_loader=val_loader,
     device=device,
-    epochs=80,
-    lr=0.01,
-    weight_decay=1e-3
+    epochs=args.epochs,
+    lr=args.lr,
+    weight_decay=args.weight_decay
 )
+
+# Save model with date and time in the filename
+model_path = os.path.join("models", f"cnnbilstm-window-{args.window_length}-{args.note}-{current_time}.pth")
+torch.save(model.state_dict(), model_path)
 
 print("Training completed!")
 print(f"Final validation CER: {results['final_val_cer']:.4f}")

@@ -29,7 +29,7 @@ def create_transforms():
     
     return train_transform, eval_transform
 
-def create_dataloaders(cfg, data_dir, batch_size=128, num_workers=2):
+def create_dataloaders(cfg, data_dir, batch_size=128, num_workers=2, use_keystroke_augmentation=False):
     """Create train, validation, and test dataloaders"""
     train_transform, eval_transform = create_transforms()
     
@@ -49,8 +49,11 @@ def create_dataloaders(cfg, data_dir, batch_size=128, num_workers=2):
             transform=train_transform
         )
         # Wrap with keystroke augmentation
-        augmented_dataset = KeystrokeAugmentedDataset(base_dataset, apply_augmentation=True)
-        train_datasets.append(augmented_dataset)
+        if use_keystroke_augmentation:
+            augmented_dataset = KeystrokeAugmentedDataset(base_dataset, apply_augmentation=True)
+            train_datasets.append(augmented_dataset)
+        else:
+            train_datasets.append(base_dataset)
     
     # Create validation and test datasets (no keystroke augmentation)
     val_datasets = []
@@ -88,12 +91,13 @@ def create_dataloaders(cfg, data_dir, batch_size=128, num_workers=2):
     val_dataset = ConcatDataset(val_datasets)
     test_dataset = ConcatDataset(test_datasets)
     
+    collate_fn = KeystrokeAugmentedDataset.collate if use_keystroke_augmentation else WindowedEMGDataset.collate
     # Create dataloaders
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
         shuffle=True,
-        collate_fn=KeystrokeAugmentedDataset.collate,  # Use the same collate function
+        collate_fn=collate_fn,
         num_workers=num_workers
     )
     
@@ -101,7 +105,7 @@ def create_dataloaders(cfg, data_dir, batch_size=128, num_workers=2):
         val_dataset,
         batch_size=batch_size,
         shuffle=False,
-        collate_fn=WindowedEMGDataset.collate,
+        collate_fn=collate_fn,
         num_workers=num_workers
     )
     
@@ -109,7 +113,7 @@ def create_dataloaders(cfg, data_dir, batch_size=128, num_workers=2):
         test_dataset,
         batch_size=batch_size,
         shuffle=False,
-        collate_fn=WindowedEMGDataset.collate,
+        collate_fn=collate_fn,
         num_workers=num_workers
     )
     
