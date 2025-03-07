@@ -135,15 +135,18 @@ def calculate_per_char_errors(all_predictions, all_targets):
                 confusion_matrix[true_char][pred_char] += 1
                 operation_counts['replace'] += 1
             elif op == 'insert':
-                # Insertion error (extra character in prediction)
-                operation_counts['insert'] += 1
-                # Note: We don't count this against any specific character
-            elif op == 'delete':
-                # Deletion error (missing character in prediction)
+                # Insertion error (missing character in prediction)
                 true_char = target_chars[j]
                 char_counts[true_char] += 1
                 char_errors[true_char] += 1
-                confusion_matrix[true_char]['_DEL_'] += 1  # Special marker for deletion
+                confusion_matrix[true_char]['blank'] += 1
+                operation_counts['insert'] += 1
+            elif op == 'delete':
+                # Deletion error (extra character in prediction)
+                pred_char = pred_chars[i]
+                # char_counts[pred_char] += 1
+                # char_errors[pred_char] += 1
+                confusion_matrix['blank'][pred_char] += 1
                 operation_counts['delete'] += 1
     
     # Calculate error rates
@@ -195,7 +198,7 @@ def plot_char_error_rates(char_counts, char_error_rates, output_dir):
     plt.savefig(os.path.join(output_dir, 'char_error_rates.png'), dpi=300)
     plt.close()
     
-def plot_confusion_matrix(confusion_matrix, output_dir):
+def plot_confusion_matrix(confusion_matrix, output_dir, max_chars=40):
     """Plot confusion matrix for most common characters"""
     # Get characters with most occurrences
     char_totals = defaultdict(int)
@@ -204,7 +207,7 @@ def plot_confusion_matrix(confusion_matrix, output_dir):
             char_totals[true_char] += count
     
     # Select top 20 most common characters
-    top_chars = sorted(char_totals.items(), key=lambda x: x[1], reverse=True)[:20]
+    top_chars = sorted(char_totals.items(), key=lambda x: x[1], reverse=True)[:max_chars]
     top_chars = [c for c, _ in top_chars]
     
     # Create confusion matrix for top chars
@@ -216,7 +219,7 @@ def plot_confusion_matrix(confusion_matrix, output_dir):
                 matrix[i, j] = confusion_matrix[true_char][pred_char] / total
     
     # Plot
-    plt.figure(figsize=(12, 10))
+    plt.figure(figsize=(24, 20))
     sns.heatmap(
         matrix, 
         annot=True, 

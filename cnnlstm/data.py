@@ -13,10 +13,10 @@ def create_transforms():
         ToTensor(),
         LogSpectrogram(),
         SpecAugment(
-            n_time_masks=2,
-            time_mask_param=20,
-            n_freq_masks=2,
-            freq_mask_param=2,
+            n_time_masks=5,
+            time_mask_param=10,
+            n_freq_masks=5,
+            freq_mask_param=5,
 
         ),
         RandomBandRotation()
