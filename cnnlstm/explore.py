@@ -84,3 +84,44 @@ print("Original EMG data shape:", emg_data.shape)
 print("Spectrogram shape:", spectrogram.shape)
 
 # %%
+from data import create_transforms
+from emg2qwerty.data import WindowedEMGDataset
+from config import load_config
+train_transform, eval_transform = create_transforms()
+
+# Create datasets
+train_datasets = []
+val_datasets = []
+test_datasets = []
+
+use_keystroke_augmentation=False
+
+batch_size = 128
+num_workers = 2
+
+emg2qwerty_path = Path(__file__).parent.parent / "emg2qwerty"
+
+# Load config
+config_path = emg2qwerty_path / "config/user/single_user.yaml"
+cfg = load_config(config_path)
+
+# Load data
+data_path = emg2qwerty_path / "data"
+
+# Create training datasets with augmentation
+for session_info in cfg['dataset']['train']:
+    base_dataset = WindowedEMGDataset(
+        hdf5_path=data_path / f"{session_info['session']}.hdf5",
+        window_length=2000,
+        stride=1000,
+        padding=(200, 200),
+        jitter=True,
+        transform=train_transform
+    )
+
+    train_datasets.append(base_dataset)
+# %%
+train_dataset_one_ori = train_datasets[0]
+# %%
+emg, labels = train_dataset_one_ori.__getitem__(0)
+# %%

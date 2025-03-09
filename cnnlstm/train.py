@@ -28,24 +28,11 @@ from config import load_config
 from data import create_dataloaders
 
 # Set visible GPU to GPU 3
-#os.environ["CUDA_VISIBLE_DEVICES"] = "3"
-#assert torch.cuda.device_count() == 1, "Only one GPU should be visible"
+os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+assert torch.cuda.device_count() == 1, "Only one GPU should be visible"
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
 
-# %%
-batch_size = 128
-num_workers = 0
-
-emg2qwerty_path = Path(__file__).parent.parent / "emg2qwerty"
-
-# Load config
-config_path = emg2qwerty_path / "config/user/single_user.yaml"
-cfg = load_config(config_path)
-
-# Load data
-data_path = emg2qwerty_path / "data"
-train_loader, val_loader, test_loader = create_dataloaders(cfg, data_path, batch_size, num_workers)
 
 
 # %%
@@ -461,26 +448,26 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--note', type=str, default='')
 parser.add_argument('--window_length', type=int, default=4000)
 parser.add_argument('--dropout', type=float, default=0.4)
-parser.add_argument('--epochs', type=int, default=80)
+parser.add_argument('--epochs', type=int, default=60)
 parser.add_argument('--lr', type=float, default=0.01)
 parser.add_argument('--weight_decay', type=float, default=1e-3)
+parser.add_argument('--num_session', type=int, default=16)
+parser.add_argument('--downsample_rate', type=int, default=1)
+parser.add_argument('--channel_drop_rate', type=int, default=0)
+
 args = parser.parse_args()
 
+num_hands = 2
+num_channels = 16 - 4 * args.channel_drop_rate
+num_features = 33
+
+num_input_features = num_hands * num_channels * num_features
 model = EMGCNNBiLSTM(
-    in_features=2*16*33, 
+    in_features=num_input_features, 
     num_classes=len(charset()) + 1,
     dropout=0.4
 )
 
-# Initialize WandB
-wandb.init(
-    project="emg2qwerty", 
-    entity="vijayasree-ucla",
-    name=f'cnnbilstm-window-{args.window_length}-{args.note}'
-)
-
-# Get the current date and time
-current_time = datetime.now().strftime("%Y%m%d_%H%M%S")  # Format: YYYYMMDD_HHMMSS
 
 # Train the model using your existing data loaders
 # results = train_model(
@@ -493,6 +480,39 @@ current_time = datetime.now().strftime("%Y%m%d_%H%M%S")  # Format: YYYYMMDD_HHMM
 #     weight_decay=args.weight_decay
 # )
 
+# %%
+batch_size = 128
+num_workers = 2
+
+emg2qwerty_path = Path(__file__).parent.parent / "emg2qwerty"
+
+# Load config
+config_path = emg2qwerty_path / "config/user/single_user.yaml"
+cfg = load_config(config_path)
+
+# Load data
+data_path = emg2qwerty_path / "data"
+train_loader, val_loader, test_loader = create_dataloaders(
+    cfg, 
+    data_path, 
+    batch_size, 
+    num_workers, 
+    use_keystroke_augmentation=False, 
+    downsample_rate=args.downsample_rate,
+    num_sessions=args.num_session,
+    channel_drop_rate=args.channel_drop_rate
+)
+
+# Initialize WandB
+wandb.init(
+    project="emg2qwerty", 
+    name=f'cnnbilstm-window-{args.window_length}-{args.note}-downsample-{args.downsample_rate}-num_session-{args.num_session}-channel_drop_rate-{args.channel_drop_rate}'
+)
+
+# Get the current date and time
+current_time = datetime.now().strftime("%Y%m%d_%H%M%S")  # Format: YYYYMMDD_HHMMSS
+
+
 # Update the training call to include the mixup_alpha parameter
 results = train_model_mixup(
     model=model,
@@ -502,7 +522,7 @@ results = train_model_mixup(
     epochs=args.epochs,
     lr=args.lr,
     weight_decay=args.weight_decay,
-    mixup_alpha=0.4  # Add this parameter - set to 0 to disable MixUp
+    mixup_alpha=0  # Add this parameter - set to 0 to disable MixUp
 )
 
 # Save model with date and time in the filename

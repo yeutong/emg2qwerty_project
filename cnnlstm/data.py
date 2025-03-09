@@ -29,7 +29,7 @@ def create_transforms():
     
     return train_transform, eval_transform
 
-def create_dataloaders(cfg, data_dir, batch_size=128, num_workers=2, use_keystroke_augmentation=False):
+def create_dataloaders(cfg, data_dir, batch_size=128, num_workers=2, use_keystroke_augmentation=False, downsample_rate=1, num_sessions=16, channel_drop_rate=0):
     """Create train, validation, and test dataloaders"""
     train_transform, eval_transform = create_transforms()
     
@@ -39,14 +39,20 @@ def create_dataloaders(cfg, data_dir, batch_size=128, num_workers=2, use_keystro
     test_datasets = []
     
     # Create training datasets with augmentation
-    for session_info in cfg['dataset']['train']:
+    for session_idx, session_info in enumerate(cfg['dataset']['train']):
+        # Exp 2: how much data to use
+        if session_idx >= num_sessions:
+            break
+
         base_dataset = WindowedEMGDataset(
             hdf5_path=data_dir / f"{session_info['session']}.hdf5",
             window_length=2000,
             stride=1000,
             padding=(200, 200),
             jitter=True,
-            transform=train_transform
+            transform=train_transform,
+            downsample_rate=downsample_rate,
+            channel_drop_rate=channel_drop_rate
         )
         # Wrap with keystroke augmentation
         if use_keystroke_augmentation:
@@ -67,7 +73,9 @@ def create_dataloaders(cfg, data_dir, batch_size=128, num_workers=2, use_keystro
             stride=1000,
             padding=(200, 200),
             jitter=False,  # No jitter for validation
-            transform=eval_transform
+            transform=eval_transform,
+            downsample_rate=downsample_rate,
+            channel_drop_rate=channel_drop_rate
         )
         val_datasets.append(dataset)
 
@@ -82,7 +90,9 @@ def create_dataloaders(cfg, data_dir, batch_size=128, num_workers=2, use_keystro
             stride=1000,
             padding=(200, 200),
             jitter=False,  # No jitter for testing
-            transform=eval_transform
+            transform=eval_transform,
+            downsample_rate=downsample_rate,
+            channel_drop_rate=channel_drop_rate
         )
         test_datasets.append(dataset)
     

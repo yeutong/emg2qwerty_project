@@ -451,6 +451,8 @@ class WindowedEMGDataset(torch.utils.data.Dataset):
     padding: InitVar[tuple[int, int]] = (0, 0)
     jitter: bool = False
     transform: Transform[np.ndarray, torch.Tensor] = field(default_factory=ToTensor)
+    downsample_rate: int = 1
+    channel_drop_rate: int = 0 # 0 (baseline), 1 (drop one every 4), 2 (drop two for every 4), 3 (drop three every 4)
 
     def __post_init__(
         self,
@@ -507,7 +509,17 @@ class WindowedEMGDataset(torch.utils.data.Dataset):
         label_data = self.session.ground_truth(start_t, end_t)
         labels = torch.as_tensor(label_data.labels)
 
-        return emg, labels
+        # Exp 3: do downsampling on raw emg signal
+        sampled_window = window[::self.downsample_rate]
+        sampled_emg = self.transform(sampled_window)
+
+        # Exp 1: Drop some channels
+        # sampled_emg with shape: (T, 2, 16, 33)
+        # channel_drop_rate: 0 (baseline), 1 (drop one every 4), 2 (drop two for every 4), 3 (drop three every 4)
+        _, _, channels, _ = sampled_emg.shape
+        channels_to_keep = [i for i in range(channels) if i % 4 < (4 - self.channel_drop_rate)]
+        sampled_emg = sampled_emg[:, :, channels_to_keep]
+        return sampled_emg, labels
 
     @staticmethod
     def collate(
