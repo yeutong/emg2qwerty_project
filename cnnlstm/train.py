@@ -28,7 +28,7 @@ from config import load_config
 from data import create_dataloaders
 
 # Set visible GPU to GPU 3
-os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 assert torch.cuda.device_count() == 1, "Only one GPU should be visible"
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
@@ -448,7 +448,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--note', type=str, default='')
 parser.add_argument('--window_length', type=int, default=4000)
 parser.add_argument('--dropout', type=float, default=0.4)
-parser.add_argument('--epochs', type=int, default=60)
+parser.add_argument('--epochs', type=int, default=80)
 parser.add_argument('--lr', type=float, default=0.01)
 parser.add_argument('--weight_decay', type=float, default=1e-3)
 parser.add_argument('--num_session', type=int, default=16)
