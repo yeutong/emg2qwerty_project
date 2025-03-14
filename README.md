@@ -9,7 +9,7 @@ Acknowledgement: This project contains code that was generated with the assistan
 
 ## Team Members
 
-- **Aisha Sartaj**
-- **Gita Supramaniam**
-- **Vijayasree Garapati**
-- **Yeu-Tong Lau**
+- **Aisha Sartaj**: worked on Conformer model
+- **Gita Supramaniam**: worked on Conformer model
+- **Vijayasree Garapati**: worked on CNN+BiLSTM model
+- **Yeu-Tong Lau**: worked on CNN+BiLSTM model
