@@ -2,6 +2,11 @@
 
 This repository extends the original EMG-to-text decoding project from [joe-lin-tech/emg2qwerty](https://github.com/joe-lin-tech/emg2qwerty). The project explores the use of a **Conformer-based model** for **surface electromyography (sEMG) signal-based text decoding**, analyzing various factors that impact **Character Error Rate (CER)**.
 
+## 📌 Project Guidelines
+
+For detailed project instructions, refer to the official Project Guidelines document:
+[Project Guidelines](https://drive.google.com/drive/home?dmr=1&ec=wgc-drive-hero-goto)
+
 ## 📌 Setup Instructions
 
 ### 1️⃣ **Clone the Original Repository**
