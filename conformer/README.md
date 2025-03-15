@@ -44,6 +44,7 @@ emg2qwerty/
 │── ConformerCodeData.ipynb      # Training data size vs. CER
 │── ConformerCodeGuassian.ipynb  # Gaussian noise augmentation
 │── ConformerCodeSamp.ipynb      # Sampling rate vs. CER
+│── (Other existing files from [emg2qwerty](https://github.com/joe-lin-tech/emg2qwerty) repo)
 ```
 
 ## 🚀 Running the Conformer Model
