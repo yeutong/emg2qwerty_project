@@ -56,9 +56,10 @@ Each notebook explores a different factor affecting CER:
 4. **Sampling Rate (`ConformerCodeSamp.ipynb`)** - Impact of different frequencies
 
 ## 🔬 Purpose of the Project
-- **Improve decoding performance** for sEMG-based text recognition.
-- **Analyze key factors** (electrodes, noise, sampling) influencing CER.
-- **Enhance model generalization** through structured experiments.
+- **Perform a comparative analysis of the Conformer model** for sEMG-based text decoding.
+- **Evaluate Conformer's impact on CER** under different experimental conditions.
+- **Compare Conformer’s performance** against the existing TDS baseline model to assess its effectiveness in sEMG-based decoding.
+- **Analyze key factors** (electrodes, noise, sampling) influencing CER to optimize model performance.
 
 ## 📌 Additional Notes
 - The models and scripts remain the same as the base project.
